@@ -1,10 +1,11 @@
 {
     "name": "net-control-frontend",
     "version": "1.0.0",
+    "license": "MIT",
     "scripts": {
         "start": "serve -s public -l 3000",
-        "build": "echo 'No se necesita build para este proyecto estático'",
-        "test": "echo 'No hay tests configurados'"
+        "build": "echo 'Building static site' && cp -r src/* public/ || echo 'No src folder'",
+        "test": "echo 'No tests specified'"
     },
     "dependencies": {
         "serve": "^14.2.0"

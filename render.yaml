@@ -1,9 +1,9 @@
 services:
   - type: static_site
-    name: net-control-frontend
-    repo: https://github.com/JOEL0316/Front-Contol-Red.git
-    branch: main
-    buildCommand: npm install && npm run build
+    name: front-control-red
+    repo: https://github.com/JOEL0316/Front-Contol-Red
+    branch: master
+    buildCommand: yarn install && yarn build
     publishPath: public
     envVars:
       - key: NODE_VERSION
