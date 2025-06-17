@@ -1,0 +1,64 @@
+:root {
+    --primary-color: #0d6efd;
+    --dark-color: #212529;
+}
+
+body {
+    background-color: #f8f9fa;
+    padding-bottom: 80px;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+/* Tablas */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Botón PWA Flotante */
+.pwa-install-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Ocultar botón si ya está instalado */
+@media (display-mode: standalone) {
+    #installPWA, #installPWA-Float {
+        display: none !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .pwa-install-btn button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+}

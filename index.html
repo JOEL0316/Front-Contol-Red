@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <title>Admin Control de Internet</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="manifest.json">
+
+
+    <!-- Otros meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Para iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NetControl">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+
+    <!-- Para Windows -->
+    <meta name="msapplication-TileImage" content="/img/icon-192.png">
+    <meta name="msapplication-TileColor" content="#0d6efd">
+
+</head>
+
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-wifi"></i> Control de Red
+            </a>
+            <!-- Botón flotante PWA -->
+            <div id="installPWA-Float" class="pwa-install-btn d-none">
+                <button class="btn btn-primary btn-lg rounded-pill shadow">
+                    <i class="fas fa-download me-2"></i> Instalar App
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Dispositivos Conectados -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-laptop"></i> Dispositivos Conectados
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="devicesTable">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>IP</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Datos dinámicos desde API -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reglas de Bloqueo -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-ban"></i> Reglas de Bloqueo
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Agregar Sitio Web a Bloquear:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="siteToBlock" placeholder="Ej: facebook.com">
+                        <button class="btn btn-primary" id="addRule">Agregar</button>
+                    </div>
+                </div>
+                <ul class="list-group" id="blockedSitesList">
+                    <!-- Datos dinámicos desde API -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Horarios de Bloqueo -->
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <i class="fas fa-clock"></i> Horarios de Bloqueo
+            </div>
+            <div class="card-body">
+                <form id="scheduleForm">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Desde:</label>
+                            <input type="time" class="form-control" id="startTime" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hasta:</label>
+                            <input type="time" class="form-control" id="endTime" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Acción:</label>
+                            <select class="form-select" id="scheduleAction" required>
+                                <option value="block">Bloquear Todo</option>
+                                <option value="unblock">Permitir Todo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón flotante PWA -->
+    <div id="installPWA-Float" class="pwa-install-btn d-none">
+        <button class="btn btn-primary btn-lg rounded-pill shadow">
+            <i class="fas fa-download me-2"></i> Instalar App
+        </button>
+    </div>
+
+    <!-- Bootstrap JS + Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JS Personalizado -->
+    <script src="script.js"></script>
+</body>
+
+</html>
