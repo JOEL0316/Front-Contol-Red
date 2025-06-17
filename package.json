@@ -4,7 +4,8 @@
     "license": "MIT",
     "scripts": {
         "start": "serve -s public -l 3000",
-        "build": "echo 'Building static site' && cp -r src/* public/ || echo 'No src folder'",
+        "preinstall": "npm install -g serve",
+        "build": "echo 'Building...' && cp -r src/* public/ || true",
         "test": "echo 'No tests specified'"
     },
     "dependencies": {

@@ -1,10 +1,13 @@
 services:
-  - type: static_site
+  - type: web_service
     name: front-control-red
     repo: https://github.com/JOEL0316/Front-Contol-Red
     branch: master
-    buildCommand: yarn install && yarn build
+    buildCommand: npm install && npm run build
     publishPath: public
     envVars:
       - key: NODE_VERSION
         value: 16
+
+
+
