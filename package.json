@@ -1,0 +1,15 @@
+{
+    "name": "net-control-frontend",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "serve -s public -l 3000",
+        "build": "echo 'No se necesita build para este proyecto estático'",
+        "test": "echo 'No hay tests configurados'"
+    },
+    "dependencies": {
+        "serve": "^14.2.0"
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    }
+}

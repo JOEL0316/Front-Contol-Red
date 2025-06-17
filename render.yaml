@@ -1,0 +1,10 @@
+services:
+  - type: static_site
+    name: net-control-frontend
+    repo: https://github.com/JOEL0316/Front-Contol-Red.git
+    branch: main
+    buildCommand: npm install && npm run build
+    publishPath: public
+    envVars:
+      - key: NODE_VERSION
+        value: 16
