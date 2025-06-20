@@ -1,21 +1,74 @@
-// Configuración del entorno (solo para PWA)
+// Configuración del entorno
 const isLocalhost = window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1';
 const isSecure = window.location.protocol === 'https:';
 const isFileProtocol = window.location.protocol === 'file:';
 
-// URLs de las APIs deployadas en Render (reemplaza con tus URLs reales)
+// Configuración de las APIs
+const API_CONFIG = {
+    devices: {
+        dev: 'http://localhost:3001/api',
+        prod: 'https://api-dispositivos.example.com/api'
+    },
+    blocking: {
+        dev: 'http://localhost:3002/api',
+        prod: 'https://api-bloqueos.example.com/api'
+    },
+    sites: {
+        dev: 'http://localhost:3003/api',
+        prod: 'https://api-sitios.example.com/api'
+    },
+    schedules: {
+        dev: 'http://localhost:3004/api',
+        prod: 'https://api-horarios.example.com/api'
+    }
+};
+
+// Configuración de los endpoints para cada API
+const ENDPOINTS = {
+    devices: {
+        base: isLocalhost ? API_CONFIG.devices.dev : API_CONFIG.devices.prod,
+        list: '/devices',
+        block: '/block-device'
+    },
+    blocking: {
+        base: isLocalhost ? API_CONFIG.blocking.dev : API_CONFIG.blocking.prod,
+        sites: '/blocked-sites'
+    },
+    schedules: {
+        base: isLocalhost ? API_CONFIG.schedules.dev : API_CONFIG.schedules.prod,
+        list: '/schedules'
+    }
+};
+
+// URLs completas para cada endpoint
 const API_URLS = {
-    devices: 'https://api-dispositivos.onrender.com/api/devices',
-    blockDevice: 'https://api-dispositivos.onrender.com/api/block-device',
-    blockedSites: 'https://api-bloqueos.onrender.com/api/blocked-sites',
-    schedules: 'https://api-horarios.onrender.com/api/schedules'
+    devices: ENDPOINTS.devices.base + ENDPOINTS.devices.list,
+    blockDevice: ENDPOINTS.devices.base + ENDPOINTS.devices.block,
+    blockedSites: ENDPOINTS.blocking.base + ENDPOINTS.blocking.sites,
+    schedules: ENDPOINTS.schedules.base + ENDPOINTS.schedules.list
+};
+
+const DEV_MODE = isLocalhost; // Usar datos mock en desarrollo local
+
+// Datos mock para desarrollo
+const MOCK_DATA = {
+    devices: [
+        { name: "PC-Juan", ip: "192.168.1.10", status: "connected" },
+        { name: "Phone-Maria", ip: "192.168.1.11", status: "connected" },
+        { name: "Tablet-Luis", ip: "192.168.1.12", status: "blocked" }
+    ],
+    blockedSites: [
+        { url: "facebook.com" },
+        { url: "twitter.com" }
+    ],
+    schedules: []
 };
 
 // Estado de la aplicación
 const AppState = {
-    deferredPrompt: null,  // Para PWA
-    isPWAInstalled: false, // Para PWA
+    deferredPrompt: null,
+    isPWAInstalled: false,
     isLoading: false
 };
 
@@ -42,41 +95,35 @@ const DOM = {
     // Loaders
     devicesLoader: document.getElementById("devicesLoader"),
     sitesLoader: document.getElementById("sitesLoader"),
-    scheduleLoader: document.getElementById("scheduleLoader"),
-
-    // Autenticación
-    logoutBtn: document.getElementById("logoutBtn"),
-    userProfile: document.getElementById("userProfile")
+    scheduleLoader: document.getElementById("scheduleLoader")
 };
 
 // ==================== FUNCIONES PRINCIPALES ====================
 
 /**
- * Carga la lista de dispositivos desde la API
+ * Carga la lista de dispositivos desde la API o datos mock
  */
 async function loadDevices() {
     try {
         showLoader('devices');
-        
-        const response = await fetchWithTimeout(API_URLS.devices, {
-            headers: {
-                'Authorization': `Bearer ${Auth.getToken()}`
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                Auth.logout();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
+
+        let devices;
+
+        if (DEV_MODE) {
+            await simulateNetworkDelay();
+            devices = MOCK_DATA.devices;
+            console.info("Modo desarrollo: Usando datos mock para dispositivos");
+        } else {
+            const response = await fetchWithTimeout(API_URLS.devices);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            devices = await response.json();
         }
-        
-        const devices = await response.json();
+
         renderDevices(devices);
     } catch (error) {
         console.error("Error al cargar dispositivos:", error);
-        showAlert("Error al cargar dispositivos", "danger");
+        showAlert("Error al cargar dispositivos. Mostrando datos de ejemplo.", "warning");
+        renderDevices(MOCK_DATA.devices);
     } finally {
         hideLoader('devices');
     }
@@ -120,21 +167,21 @@ async function handleDeviceAction(ip, action) {
     try {
         showLoader('devices');
 
-        const response = await fetchWithTimeout(API_URLS.blockDevice, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Auth.getToken()}`
-            },
-            body: JSON.stringify({ ip, action })
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                Auth.logout();
-                return;
+        if (DEV_MODE) {
+            await simulateNetworkDelay();
+            const device = MOCK_DATA.devices.find(d => d.ip === ip);
+            if (device) {
+                device.status = action === 'block' ? 'blocked' : 'connected';
+                console.info(`Modo desarrollo: Dispositivo ${ip} ${action === 'block' ? 'bloqueado' : 'desbloqueado'}`);
             }
-            throw new Error(`Error HTTP: ${response.status}`);
+        } else {
+            const response = await fetchWithTimeout(API_URLS.blockDevice, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ip, action })
+            });
+
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         }
 
         await loadDevices();
@@ -154,25 +201,23 @@ async function loadBlockedSites() {
     try {
         showLoader('sites');
 
-        const response = await fetchWithTimeout(API_URLS.blockedSites, {
-            headers: {
-                'Authorization': `Bearer ${Auth.getToken()}`
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                Auth.logout();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
+        let sites;
+
+        if (DEV_MODE) {
+            await simulateNetworkDelay();
+            sites = MOCK_DATA.blockedSites;
+            console.info("Modo desarrollo: Usando datos mock para sitios bloqueados");
+        } else {
+            const response = await fetchWithTimeout(API_URLS.blockedSites);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            sites = await response.json();
         }
 
-        const sites = await response.json();
         renderBlockedSites(sites);
     } catch (error) {
         console.error("Error al cargar sitios bloqueados:", error);
-        showAlert("Error al cargar sitios bloqueados", "danger");
+        showAlert("Error al cargar sitios bloqueados. Mostrando datos de ejemplo.", "warning");
+        renderBlockedSites(MOCK_DATA.blockedSites);
     } finally {
         hideLoader('sites');
     }
@@ -209,21 +254,20 @@ async function addBlockedSite(url) {
     try {
         showLoader('sites');
 
-        const response = await fetchWithTimeout(API_URLS.blockedSites, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Auth.getToken()}`
-            },
-            body: JSON.stringify({ url })
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                Auth.logout();
-                return;
+        if (DEV_MODE) {
+            await simulateNetworkDelay();
+            if (!MOCK_DATA.blockedSites.some(s => s.url === url)) {
+                MOCK_DATA.blockedSites.push({ url });
             }
-            throw new Error(`Error HTTP: ${response.status}`);
+            console.info(`Modo desarrollo: Sitio ${url} agregado a bloqueados`);
+        } else {
+            const response = await fetchWithTimeout(API_URLS.blockedSites, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url })
+            });
+
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         }
 
         DOM.siteToBlockInput.value = "";
@@ -246,22 +290,17 @@ async function unblockSite(url) {
     try {
         showLoader('sites');
 
-        const response = await fetchWithTimeout(
-            `${API_URLS.blockedSites}?url=${encodeURIComponent(url)}`,
-            { 
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${Auth.getToken()}`
-                }
-            }
-        );
+        if (DEV_MODE) {
+            await simulateNetworkDelay();
+            MOCK_DATA.blockedSites = MOCK_DATA.blockedSites.filter(s => s.url !== url);
+            console.info(`Modo desarrollo: Sitio ${url} desbloqueado`);
+        } else {
+            const response = await fetchWithTimeout(
+                `${API_URLS.blockedSites}?url=${encodeURIComponent(url)}`,
+                { method: "DELETE" }
+            );
 
-        if (!response.ok) {
-            if (response.status === 401) {
-                Auth.logout();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         }
 
         await loadBlockedSites();
@@ -286,21 +325,18 @@ async function saveSchedule(startTime, endTime, action) {
     try {
         showLoader('schedule');
 
-        const response = await fetchWithTimeout(API_URLS.schedules, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Auth.getToken()}`
-            },
-            body: JSON.stringify({ startTime, endTime, action })
-        });
+        if (DEV_MODE) {
+            await simulateNetworkDelay();
+            MOCK_DATA.schedules.push({ startTime, endTime, action });
+            console.info(`Modo desarrollo: Horario guardado (${startTime} - ${endTime}, ${action})`);
+        } else {
+            const response = await fetchWithTimeout(API_URLS.schedules, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ startTime, endTime, action })
+            });
 
-        if (!response.ok) {
-            if (response.status === 401) {
-                Auth.logout();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         }
 
         DOM.scheduleForm.reset();
@@ -313,7 +349,7 @@ async function saveSchedule(startTime, endTime, action) {
     }
 }
 
-// ==================== PWA (Manteniendo tu implementación original) ====================
+// ==================== PWA ====================
 
 /**
  * Configura la funcionalidad PWA
@@ -535,6 +571,14 @@ function hideLoader(context) {
 }
 
 /**
+ * Simula un retardo de red para desarrollo
+ */
+async function simulateNetworkDelay(min = 300, max = 800) {
+    const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+
+/**
  * Fetch con timeout
  */
 async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
@@ -608,31 +652,21 @@ DOM.scheduleForm?.addEventListener('submit', (e) => {
     saveSchedule(startTime, endTime, action);
 });
 
-// Logout
-DOM.logoutBtn?.addEventListener('click', () => {
-    Auth.logout();
-});
-
 // ==================== INICIALIZACIÓN ====================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Verificar autenticación
-    if (!Auth.isAuthenticated()) {
-        window.location.href = '/login.html';
-        return;
-    }
-
-    // Mostrar información del usuario
-    const user = Auth.getCurrentUser();
-    if (user && DOM.userProfile) {
-        DOM.userProfile.textContent = user.name;
+    // Mostrar advertencia si estamos en file://
+    if (isFileProtocol) {
+        const alertMsg = "Para todas las funciones PWA, ejecuta este proyecto desde un servidor web local (http://localhost).";
+        console.warn(alertMsg);
+        showAlert(alertMsg, "warning", 10000);
     }
 
     // Configurar hora actual por defecto
     const now = new Date();
     if (DOM.startTime) DOM.startTime.value = now.toTimeString().substring(0, 5);
     if (DOM.endTime) {
-        const endTime = new Date(now.getTime() + 60 * 60 * 1000);
+        const endTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hora después
         DOM.endTime.value = endTime.toTimeString().substring(0, 5);
     }
 

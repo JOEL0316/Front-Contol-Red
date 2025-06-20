@@ -1,13 +1,26 @@
 services:
-  - type: web_service
+  - type: web
     name: front-control-red
     repo: https://github.com/JOEL0316/Front-Contol-Red
     branch: master
+    env: node
     buildCommand: npm install && npm run build
-    publishPath: public
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
-        value: 16
+        value: 18.x
+      - key: MONGODB_URI
+        value: mongodb+srv://<usuario>:<contraseña>@cluster0.mongodb.net/network-control?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: tu_super_secreto_jwt_aqui
+      - key: DEVICES_API_URL
+        value: https://api-dispositivos.onrender.com
+      - key: BLOCKING_API_URL
+        value: https://api-bloqueos.onrender.com
+      - key: SCHEDULES_API_URL
+        value: https://api-horarios.onrender.com
 
-
-
+  # Si necesitas servicios adicionales para las APIs, puedes agregarlos así:
+  # - type: web
+  #   name: api-dispositivos
+  #   ...
