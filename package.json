@@ -1,17 +1,24 @@
 {
     "name": "net-control-frontend",
     "version": "1.0.0",
-    "license": "MIT",
     "scripts": {
-        "start": "serve -s public -l 3000",
-        "preinstall": "npm install -g serve",
-        "build": "echo 'Building...' && cp -r src/* public/ || true",
-        "test": "echo 'No tests specified'"
+        "start": "node server/server.js",
+        "dev": "nodemon server/server.js",
+        "build": "echo 'Building frontend...' && cp -r src/* public/ || true"
     },
     "dependencies": {
-        "serve": "^14.2.0"
+        "bcryptjs": "^2.4.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.5.0",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.2",
+        "mongoose": "^8.16.0",
+        "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1",
+        "passport-local": "^1.0.0",
+        "path-to-regexp": "^6.2.1"
     },
-    "engines": {
-        "node": ">=16.0.0"
+    "devDependencies": {
+        "nodemon": "^3.0.1"
     }
 }
